@@ -1,0 +1,78 @@
+SELECT 
+    NAME,
+    PATID,
+    PATREFERENCE,
+    SEX,
+    Age,
+    "Registered Since",
+    BILLDATE,
+    "Last Visit Date",
+    TELEPHONE,
+    EMAIL,
+    BRANCH,
+    "Product Category",
+    Revenue,
+    "Patient Recency"
+FROM (
+    SELECT 
+        NAME,
+        "PAT ID" AS PATID,
+        PATREFERENCE,
+        SEX,
+        Age,
+        "Registered Since",
+        BILLDATE,
+        "Last Visit Date",
+        TELEPHONE,
+        EMAIL,
+        BRANCH,
+        "Product Category",
+        Revenue,
+        "Patient Recency"
+    FROM (
+        SELECT 
+            TO_CHAR(LTHMS.OPTCHARGEDETAIL.BILLDATE, 'YYYY-MM-DD') AS BILLDATE,
+            LTHMS.OPTCHARGEDETAIL.PATID AS "PAT ID",
+            LTHMS.OPTCHARGEDETAIL.RPATTYPE AS "Product Category",
+            LTHMS.OPTCHARGEDETAIL.BRANCH,
+            LTHMS.OPTCHARGEDETAIL.RECAMOUNT AS Revenue,
+            CASE
+                WHEN LTHMS.PATIENTS.REGISDATE BETWEEN DATE '2025-01-01' AND DATE '2025-01-31' 
+                    THEN 'New'
+                ELSE 'Old'
+            END AS "Patient Recency",
+            LTHMS.PATIENTS.NAME,
+            --LTHMS.PATIENTS.TELEPHONE,
+            '+88' || LTHMS.PATIENTS.TELEPHONE AS TELEPHONE,
+            LTHMS.PATIENTS.EMAIL,
+            LTHMS.PATIENTS.PATREFERENCE,
+            LTHMS.PATIENTS.SEX,
+            ROUND(MONTHS_BETWEEN(CURRENT_DATE, TRUNC(LTHMS.PATIENTS.DOB)) / 12) AS Age,
+            TO_CHAR(LTHMS.PATIENTS.REGISDATE, 'YYYY') AS "Registered Since",
+            (
+                SELECT 
+                    TO_CHAR(MAX(LTHMS.PATIENTPROCEDUREDETAIL.LASTVISITDATE), 'YYYY-MM-DD') 
+                FROM 
+                    LTHMS.PATIENTPROCEDUREDETAIL
+                WHERE 
+                    LTHMS.PATIENTPROCEDUREDETAIL.PATID = LTHMS.OPTCHARGEDETAIL.PATID
+                GROUP BY 
+                    LTHMS.PATIENTPROCEDUREDETAIL.PATID
+            ) AS "Last Visit Date"
+        FROM 
+            LTHMS.OPTCHARGEDETAIL
+        LEFT JOIN 
+            LTHMS.PATIENTS ON LTHMS.PATIENTS.PATID = LTHMS.OPTCHARGEDETAIL.PATID
+        WHERE 
+            (
+                NOT (LOWER(LTHMS.OPTCHARGEDETAIL.RPATTYPE) LIKE '%dhi%') 
+                OR LTHMS.OPTCHARGEDETAIL.RPATTYPE IS NULL
+            )
+            AND LTHMS.OPTCHARGEDETAIL.BILLDATE BETWEEN DATE '2025-01-01' AND DATE '2025-01-31'
+        ORDER BY 
+            BILLDATE ASC
+    )
+)
+WHERE 
+    ROWNUM <= 1048575;
+
