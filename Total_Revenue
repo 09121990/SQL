@@ -1,0 +1,47 @@
+SELECT
+      --"source"."BILLDATE" "BILLDATE",
+     SUM( "source"."RECAMOUNT") "RECAMOUNT"
+    FROM
+      (
+        SELECT
+          "BILLDATE",
+          "RECAMOUNT"
+        FROM
+          "LTHMS"."INVGRPSINGLECHARGEDETAIL"
+        union all
+        SELECT
+          "BILLDATE",
+          "RECAMOUNT"
+        FROM
+          "LTHMS"."OPTCHARGEDETAIL"
+        union all
+        SELECT
+          "BILLDATE",
+          "RECAMOUNT"
+        FROM
+          "LTHMS"."PHARMACYTRANSACTIONDETAIL"
+        UNION all
+        SELECT
+          "BILLDATE",
+          "RECAMOUNT"
+        FROM
+          "LTHMS"."PHARMACYTRANDETAILGUL"
+        UNION all
+        SELECT
+          "BILLDATE",
+          "RECAMOUNT"
+        FROM
+          "LTHMS"."PHARMACYTRANDETAILUTR"
+        UNION all
+        SELECT
+          "RCPTDATE" AS "BILLDATE",
+          "RECAMOUNT"
+        FROM
+          "LTHMS"."RECEIPTDETAIL"
+      ) "source"
+   
+WHERE
+      "source"."BILLDATE" BETWEEN date '2025-01-01'
+     
+   AND date '2025-01-31';
+  
