@@ -1,0 +1,23 @@
+-- All RECEIPTDETAIL ,Dr.Name, Matchinh PATIENTS New column to indicate if REGISDATE is in Jan 2025
+SELECT  
+    RD.MRNO, 
+    RD.PATID, 
+    RD.BRANCH, 
+    RD.RCPTDATE, 
+    CP.SNAME, 
+    RD.RECAMOUNT,
+    PNT.REGISDATE,
+    CASE 
+        WHEN PNT.REGISDATE BETWEEN TO_DATE('2025-01-01', 'YYYY-MM-DD')  
+                               AND TO_DATE('2025-01-31', 'YYYY-MM-DD')  
+        THEN 'YES'  
+        ELSE 'NO'  
+    END AS ">JAN-25"  -- New column to indicate if REGISDATE is in Jan 2025
+FROM CLINICPERSONNEL CP
+JOIN RECEIPTDETAIL RD 
+    ON RD.SID = CP.SID
+LEFT JOIN PATIENTS PNT 
+    ON RD.PATID = PNT.PATID
+WHERE RD.RCPTDATE BETWEEN TO_DATE('2025-01-01', 'YYYY-MM-DD') 
+                      AND TO_DATE('2025-01-31', 'YYYY-MM-DD')
+ORDER BY RD.MRNO;
